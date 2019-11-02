@@ -2,14 +2,29 @@ import os.path
 
 
 class Job:
-    def __init__(self, arvore, listaSegmentos):
+    def __init__(self, nome, arvore, listaSegmentos):
+        self.nome = nome
         self.arvore = arvore
         self.qtdSegmentos = len(listaSegmentos)
-        self.listaSegmentos = listaSegmentos
+        self.listaSegmentos = listaSegmentos  # Lista de objetos da classe segmento
+        self.segmentosAtivos = []  # Armazena o número dos segmentos ativos
+
+    def mostrarArvore(self):
+        print('\r\nArvore de segmentos do job ' + str(self.nome))
+        print(self.arvore)
+
+    def mostrarRequisitosDoJob(self):
+        print('\r\nJob ' + str(self.nome))
+        for seg in self.listaSegmentos:
+            seg.mostrarRequisitos()
+
+    def definirSegmentosAtivos(self, listaDeSegmentos):
+        self.segmentosAtivos = listaDeSegmentos
 
 
 class Segmento:
-    def __init__(self, memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, *nomeDosArquivos, *instantesDeAcesso, qtdDeReferenciasAOutrosSegms, *segmsReferenciados, *instantesDeReferencia, *probabilidades):
+    def __init__(self, numero, memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, nomeDosArquivos, instantesDeAcesso, qtdDeReferenciasAOutrosSegms, segmsReferenciados, instantesDeReferencia, probabilidades):
+        self.numero = numero
         self.memoria = memoria
         self.tCPU = tCPU
         self.nomeE_S = nomeE_S
@@ -22,11 +37,23 @@ class Segmento:
         self.instantesDeReferencia = instantesDeReferencia
         self.probabilidades = probabilidades
 
-    def mostrarRequisitosDoSegmento(self):
-        pass
+    def mostrarRequisitos(self):
+        print('\r\nSegmento #' + str(self.numero))
+        print('Memoria: ' + str(self.memoria))
+        print('Tempo de CPU: ' + str(self.tCPU))
+        if(self.nomeE_S):
+            print('Nome do dispositivos de E/S acessado: ' + str(self.nomeE_S))
+            print('Quantidades de acesso ao dispositivo de E/S: ' + str(self.qtdE_S))
+        print('Quantidade de arquivos a serem acessados: ' + str(self.qtdArquivos))
+        if(self.qtdArquivos > 0):
+            for i in range(self.qtdArquivos):
+                print('Arquivo ' + self.nomeDosArquivos[i] + ' acessado no instante ' + str(self.instantesDeAcesso[i]))
+        print('Quantidade de referências a outros segmentos: ' + str(self.qtdDeReferenciasAOutrosSegms))
+        if(self.qtdDeReferenciasAOutrosSegms > 0):
+            for i in range(self.qtdDeReferenciasAOutrosSegms):
+                print('Referencia-se o segmento ' + str(self.segmsReferenciados[i]) + ' no instante ' + str(self.instantesDeReferencia[i]) + ' com probabilidade ' + str(100 * self.probabilidades[i]) + '%')
 
-
-def lerJobsDoArquivo(nomeArquivo: str):
+def lerJobDoArquivo(nomeArquivo: str):
     # retorna uma entrada para colocar na tabela de jobs
     f = open(os.path.split(os.path.dirname(__file__))[0] + '/txt/jobs/' + str(nomeArquivo), 'r')
     linhas = f.readlines()
@@ -57,65 +84,59 @@ def lerJobsDoArquivo(nomeArquivo: str):
     qtdSegmentos = int(linhas[1])
     # print('Quantidade de segmentos = ' + str(qtdSegmentos))
 
-    # Requisitos serão expressos como listas de dicionários, cada elemento será da forma:
-    # [Memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, [nomeDosArquivos], [instantesDeAcesso], qtdDeReferenciasAOutrosSegms, [segmsReferenciados], [instanteDeReferencia],[probabilidade]]
-    requisitos = []
+    # Requisitos serão expressos como atributos da classe segmento, cada elemento será da forma:
+    # [memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, [nomeDosArquivos], [instantesDeAcesso], qtdDeReferenciasAOutrosSegms, [segmsReferenciados], [instanteDeReferencia],[probabilidade]]
+    listaDeSegmentos = []
     for seg in range(qtdSegmentos):
-        dictSeg = {}
         elementosDaLinha = linhas[seg + 2].split(',')
-        dictSeg['Memoria'] = int(elementosDaLinha[0])
-        dictSeg['tCPU'] = int(elementosDaLinha[1])
-        dictSeg['nomeE_S'] = elementosDaLinha[2]
-        dictSeg['qtdE_S'] = elementosDaLinha[3]
-        dictSeg['qtdArquivos'] = int(elementosDaLinha[4])
+        memoria = int(elementosDaLinha[0])
+        tCPU = int(elementosDaLinha[1])
+        nomeE_S = elementosDaLinha[2]
+        qtdE_S = elementosDaLinha[3]
+        qtdArquivos = int(elementosDaLinha[4])
         index = 5
         nomeDosArquivos = []
-        if(dictSeg['qtdArquivos'] > 0):
-            for i in range(dictSeg['qtdArquivos']):
-                nomeDosArquivos.append(elementosDaLinha[index])
-                index += 1
-        dictSeg['nomeDosArquivos'] = nomeDosArquivos
+        for i in range(qtdArquivos):
+            nomeDosArquivos.append(elementosDaLinha[index])
+            index += 1
         instantesDeAcesso = []
-        if(dictSeg['qtdArquivos'] > 0):
-            for i in range(dictSeg['qtdArquivos']):
-                instantesDeAcesso.append(int(elementosDaLinha[index]))
-                index += 1
-        dictSeg['instantesDeAcesso'] = instantesDeAcesso
-        dictSeg['qtdReferenciasAOutrosSegms'] = int(elementosDaLinha[index])
+        for i in range(qtdArquivos):
+            instantesDeAcesso.append(int(elementosDaLinha[index]))
+            index += 1
+        qtdDeReferenciasAOutrosSegms = int(elementosDaLinha[index])
         index += 1
         segmsReferenciados = []
         instantesDeReferencia = []
         probabilidades = []
-        if(dictSeg['qtdReferenciasAOutrosSegms'] > 0):
-            for i in range(dictSeg['qtdReferenciasAOutrosSegms']):
-                segmsReferenciados.append(int(elementosDaLinha[index]))
-                index += 1
-            for i in range(dictSeg['qtdReferenciasAOutrosSegms']):
-                instantesDeReferencia.append(int(elementosDaLinha[index]))
-                index += 1
-            for i in range(dictSeg['qtdReferenciasAOutrosSegms']):
-                probabilidades.append(float(elementosDaLinha[index]))
-                index += 1
-        dictSeg['segmsReferenciados'] = segmsReferenciados
-        dictSeg['instantesDeReferencia'] = instantesDeReferencia
-        dictSeg['probabilidades'] = probabilidades
-        requisitos.append(dictSeg)
-
+        for i in range(qtdDeReferenciasAOutrosSegms):
+            segmsReferenciados.append(int(elementosDaLinha[index]))
+            index += 1
+        for i in range(qtdDeReferenciasAOutrosSegms):
+            instantesDeReferencia.append(int(elementosDaLinha[index]))
+            index += 1
+        for i in range(qtdDeReferenciasAOutrosSegms):
+            probabilidades.append(float(elementosDaLinha[index]))
+            index += 1
+        novoSegmento = Segmento(numero=seg, memoria=memoria, tCPU=tCPU, nomeE_S=nomeE_S, qtdE_S=qtdE_S, qtdArquivos=qtdArquivos, nomeDosArquivos=nomeDosArquivos,
+                                instantesDeAcesso=instantesDeAcesso, qtdDeReferenciasAOutrosSegms=qtdDeReferenciasAOutrosSegms, segmsReferenciados=segmsReferenciados,
+                                instantesDeReferencia=instantesDeReferencia, probabilidades=probabilidades)
+        listaDeSegmentos.append(novoSegmento)
     # print(requisitos)
-    return arvoreSegmentos, requisitos
+    novoJob = Job(nome=nomeArquivo.split('.')[0], arvore=arvoreSegmentos, listaSegmentos=listaDeSegmentos)
+    return novoJob
 
-
-def montarTabelaDeJobs(*listaDeJobs):
+def montarTabelaDeJobs(listaDeNomes):
     # A tabela será implementada através de dicts. A chave é o nome do job e o conteúdo representa os recursos
     # a serem alocados para cada segmento
     tabelaDeJobs = []
-    for nome in listaDeJobs:
-        arvore, requisitos = lerJobsDoArquivo(nome)
-        tabelaDeJobs.append([nome, arvore, requisitos])
+    for nomeDoJob in listaDeNomes:
+        tabelaDeJobs.append(lerJobDoArquivo(nomeDoJob))
 
     return tabelaDeJobs
 
 
-# listaDeJobs = ['A.txt']
-# tabelaDeJobs = montarTabelaDeJobs(*listaDeJobs)
-# print(tabelaDeJobs)
+# listaDeNomes = ['A.txt']
+# tabelaDeJobs = montarTabelaDeJobs(listaDeNomes=listaDeNomes)
+# for job in tabelaDeJobs:
+#     job.mostrarRequisitosDoJob()
+#     job.mostrarArvore()

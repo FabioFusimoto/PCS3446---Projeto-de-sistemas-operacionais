@@ -2,7 +2,9 @@ class HD:
     def __init__(self, tamanho, numCiclos):
         self.emUso = False
         self.numCiclos = numCiclos
-        self.listaDeArquivos = []
+
+        # arquivos[nome] = [tamanho, [lista de jobs que podem acessar o arquivo]] - a lista de jobs pode incluir 'Public' indicando que é acessível a todos os jobs
+        self.arquivos = {}
         self.espacosOcupados = []
         self.contadorRegressivo = 0
         self.fila = []
