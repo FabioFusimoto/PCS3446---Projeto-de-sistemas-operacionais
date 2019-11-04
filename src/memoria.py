@@ -18,27 +18,27 @@ class RAM:
         # Fila de elementos da classe Job
         self.fila = []
 
-    def verificarDisponibilidadeDeMemoria(self, qtdMem):  # Retorna True, endereço sehouber um espaço disponível ou False, None se não houver
+    def verificarDisponibilidadeDeMemoria(self, qtdMem):  # Retorna True, endereço se houver um espaço disponível ou False, None se não houver
         # Se a memória estiver vazia, aloca-se na posição 0
         if (len(self.espacosOcupados) == 0):
-            print('Lista vazia, insere-se o job no início')
+            # print('Lista vazia, insere-se o job no início')
             return True, 0
 
         # Depois vejo se há espaço livre entre a posição 0 e o início do primeiro espaço ocupado
         if(self.espacosOcupados[0][0] >= qtdMem):
-            print('Lista não vazia, mas insere-se o job no início')
+            # print('Lista não vazia, mas insere-se o job no início')
             return True, 0
 
         # Depois vejo se há espaço disponível entre 2 jobs
         if(len(self.espacosOcupados) >= 2):
             for i in range(len(self.espacosOcupados) - 1):
                 if(self.espacosOcupados[i + 1][0] - self.espacosOcupados[i][1]) > qtdMem:
-                    print('Insere-se o  job entre as posições ' + str(self.espacosOcupados[i][1]) + ' e ' + str(self.espacosOcupados[i + 1][0]))
+                    # print('Insere-se o  job entre as posições ' + str(self.espacosOcupados[i][1]) + ' e ' + str(self.espacosOcupados[i + 1][0]))
                     return True, (self.espacosOcupados[i][1] + 1)
 
         # Por fim vejo se há espaço disponível após o job que ocupa a última posição da ordem
         if(self.tamanho - 1 - self.espacosOcupados[len(self.espacosOcupados) - 1][1]) >= qtdMem:
-            print('Insere-se o job ao final da memória, a partir da posição ' + str(self.espacosOcupados[len(self.espacosOcupados) - 1][1] + 1))
+            # print('Insere-se o job ao final da memória, a partir da posição ' + str(self.espacosOcupados[len(self.espacosOcupados) - 1][1] + 1))
             return True, (self.espacosOcupados[len(self.espacosOcupados) - 1][1] + 1)
 
         # Se todos as condições anteriores falharem, significa que não há espaço para o job que se quer alocar
@@ -50,7 +50,7 @@ class RAM:
         memoriaNecessaria = 0
         for segm in self.fila[len(self.fila) - 1].segmentosAtivos:
             memoriaNecessaria += self.fila[len(self.fila) - 1].listaSegmentos[segm].memoria
-        print('\r\nQuantidade de memória requerida para alocar o job ' + str(self.fila[len(self.fila) - 1].nome) + ' --> ' + str(memoriaNecessaria))
+        # print('\r\nQuantidade de memória requerida para alocar o job ' + str(self.fila[len(self.fila) - 1].nome) + ' --> ' + str(memoriaNecessaria))
         haMemoriaDisponivel, posicaoParaAlocar = self.verificarDisponibilidadeDeMemoria(qtdMem=memoriaNecessaria)
         if(haMemoriaDisponivel):
             nomeDoJob = self.fila[len(self.fila) - 1].nome
@@ -71,13 +71,18 @@ class RAM:
         self.fila.insert(0, job)
 
     def mostrarSegmentTable(self):
+        print('Segment table')
         print(self.segmentTable)
+
+    def mostrarFileTable(self):
+        print('File table')
+        print(self.fileTable)
 
     def mostrarEspacosOcupados(self):
         print(self.espacosOcupados)
 
     def liberarJob(self, nomeDoJob):
-        # Primeiro consulta-se a segmentTable para ver quais posições são pertinentes ao job que ser quer remover
+        # Primeiro consulta-se a segmentTable para ver quais posições são pertinentes ao job que se quer remover
         chavesADeletar = []
         for key in self.segmentTable.keys():
             if nomeDoJob in key:
@@ -87,19 +92,26 @@ class RAM:
                         del self.espacosOcupados[i]
                         break
 
-                # Verificando quais arquivos devem ser removidos da memória
-                nomesDeArquivosParaDeletar = []
-                for nomeArquivo in self.fileTable.keys():
-                    if(nomeDoJob in self.fileTable[nomeArquivo][1]):
-                        if len(self.fileTable[nomeArquivo][1]) == 1:
-                            nomesDeArquivosParaDeletar.append(nomeArquivo)
-                        else:
-                            indiceParaRemover = self.fileTable[nomeArquivo][1].index(nomeDoJob)
-                            del(self.fileTable[nomeArquivo][1][indiceParaRemover])
-
                 # Para atualizar a tabela de segmentos
                 chavesADeletar.append(key)  # Não posso deletar dentro do laço porque estou iterando sobre as chaves
 
+        # Verificando quais arquivos devem ser removidos da memória
+        nomesDeArquivosParaDeletar = []
+        for nomeArquivo in self.fileTable.keys():
+            if(nomeDoJob in self.fileTable[nomeArquivo][1]):
+                # print('O job ' + nomeDoJob + ' depende do arquivo ' + nomeArquivo)
+                if len(self.fileTable[nomeArquivo][1]) == 1:
+                    nomesDeArquivosParaDeletar.append(nomeArquivo)
+                else:
+                    # Se mais de um job depender do arquivo, não se pode deletá-lo, apenas remover sua dependência da lista
+                    indiceParaRemover = self.fileTable[nomeArquivo][1].index(nomeDoJob)
+                    del(self.fileTable[nomeArquivo][1][indiceParaRemover])
+
+        # Deletando os arquivos
+        for nome in nomesDeArquivosParaDeletar:
+            del self.fileTable[nome]
+
+        # Deletando as entradas pertinentes da tabela de segmentos
         for key in chavesADeletar:
             del self.segmentTable[key]
 
@@ -110,6 +122,7 @@ class RAM:
             return False
 
     def carregarArquivoDoDisco(self, nomeDoArquivo, jobSolicitante, disco):
+        # O arg disco é um objeto da classe disco
         # Retorna-se True caso um novo arquivo seja inserido na memória com sucesso ou já esteja em memória e o job solicitante pode acessar esse arquivo
         # Retorna-se False se o job solicitante não puder acessar o arquivo ou o arquivo não existir no disco
 
@@ -130,7 +143,6 @@ class RAM:
             self.fileTable[nomeDoArquivo] = [dono, [jobSolicitante]]
             return True
 
-        # Arquivo presente na memória e público (para os casos que jobs simultâneos acessem o arquivo)
-        if(self.fileTable[nomeDoArquivo][0] == 'Public'):
-            self.fileTable[nomeDoArquivo][1].append(jobSolicitante)
-            return True
+        # Arquivo presente na memória e no caso que jobs acesse o arquivo simultaneamente
+        self.fileTable[nomeDoArquivo][1].append(jobSolicitante)
+        return True
