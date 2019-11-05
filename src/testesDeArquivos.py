@@ -12,11 +12,8 @@ disco.exibirEstado()
 disco.exibirArquivos()
 
 print('\r\n-----REALIZANDO UMA SOLICITAÇÃO E ACESSO VÁLIDOS-----')
-solicitadoComSucesso = disco.solicitarAcessoAoDisco(nomeDoJob='A', nomeDoArquivo='file1')
-if(solicitadoComSucesso):
-    print('Solicitação do job A ao arquivo file1 realizada com sucesso')
-else:
-    print('Fracasso do job A ao solicitar o arquivo file1')
+solicitadoComSucesso, mensagem = disco.solicitarAcessoAoDisco(nomeDoJob='A', nomeDoArquivo='file1')
+print(mensagem)
 
 acesso = disco.acessarDisco()
 if(acesso):

@@ -53,18 +53,19 @@ class HD:
     def solicitarAcessoAoDisco(self, nomeDoJob, nomeDoArquivo):
         # Verifica-se se dado job tem acesso ao arquivo
         # Retorna-se True se a solicitação for válida e True caso contrário
+        # Retorna uma mensagem de erro caso o primeiro valor seja 'False'
 
         # Arquivo inexistente
         if nomeDoArquivo not in self.arquivos.keys():
-            return False
+            return False, ('O arquivo ' + nomeDoArquivo + ' não existe')
 
         # Acesso proibido
         if ('Public' not in self.arquivos[nomeDoArquivo][1]) and (nomeDoJob not in self.arquivos[nomeDoArquivo][1]):
-            return False
+            return False, ('O job ' + nomeDoJob + ' não tem acesso ao arquivo ' + nomeDoArquivo)
 
         # Acesso permitido, insere-se a solicitação de acesso na fila
         self.fila.insert(0, [nomeDoJob, nomeDoArquivo])
-        return True
+        return True, ('Job ' + nomeDoJob + ' solicitou acesso ao arquivo ' + nomeDoArquivo)
 
     def acessarDisco(self):
         # Realiza o acesso de maior prioridade ao disco. Inicia a contagem regressiva
@@ -93,6 +94,22 @@ class HD:
         self.jobUtilizandoODisco = None
         self.arquivoSendoAcessado = None
         return True
+
+    def atualizar(self):
+        # Returns do tipo [True/False, mensagem, tipo]
+        # (True, 'Job * acessou o disco usando arquivo *', 'A') >> quando um job conseguir acesso ao disco
+        # (True, 'Job * terminou de acessar o disco', 'F') >> Job terminou de acessar o disco
+        # (False, None, None) >> quando não há alterações (nenhum job na fila e nenhum término de acesso)
+
+        # Primeiro tento acessar o disco e, se houver sucesso, informo o fato que o houve um novo acesso ao disco
+        if(self.acessarDisco()):
+            return True, ('Job' + self.jobUtilizandoODisco + ' acessou disco para manipular o arquivo ' + self.arquivoSendoAcessado), 'A'
+
+        # Depois verifico se o job corrente já terminou seu acesso ao disco
+        jobQueUsavaODisco = self.jobUtilizandoODisco
+        self.decrementarCiclos()
+        if(self.liberarDisco()):
+            return True, ('Job ' + jobQueUsavaODisco + ' terminou de acessar o disco'), 'F'
 
     def exibirEstado(self):
         if(self.emUso):
