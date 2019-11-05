@@ -20,7 +20,7 @@ processador.mostrarFila()
 print('\r\n-----ATUALIZANDO O PROCESSAMENTO 5 VEZES (EQUIVALENTE A ESPERAR 5 CICLOS)')
 ciclo = 0
 while(ciclo < 5):
-    houveAtualizacao, mensagem = processador.atualizar()
+    houveAtualizacao, mensagem, tipo = processador.atualizar()
     print('\r\nCiclo #' + str(ciclo))
     if(houveAtualizacao):
         print(mensagem)
@@ -35,7 +35,7 @@ processador.mostrarFila()
 
 print('\r\n-----EXECUTANDO E MOSTRANDO AS MUDANÇAS----')
 while(ciclo < 10000):
-    houveAtualizacao, mensagem = processador.atualizar()
+    houveAtualizacao, mensagem, tipo = processador.atualizar()
     if(houveAtualizacao):
         print('\r\nResultados do ciclo #' + str(ciclo))
         print(mensagem)
