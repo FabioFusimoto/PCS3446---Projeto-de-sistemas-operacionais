@@ -133,10 +133,3 @@ def montarTabelaDeJobs(listaDeNomes):
         tabelaDeJobs.append(lerJobDoArquivo(nomeDoJob))
 
     return tabelaDeJobs
-
-
-# listaDeNomes = ['A.txt']
-# tabelaDeJobs = montarTabelaDeJobs(listaDeNomes=listaDeNomes)
-# for job in tabelaDeJobs:
-#     job.mostrarRequisitosDoJob()
-#     job.mostrarArvore()
