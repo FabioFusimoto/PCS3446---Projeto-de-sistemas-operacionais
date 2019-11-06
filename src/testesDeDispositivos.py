@@ -1,4 +1,4 @@
-from dispositivos import deviceManager
+from dispositivos import DeviceManager
 
 
 print('\r\n-----INICIALIZANDO OS DISPOSITIVOS----')
@@ -7,7 +7,7 @@ dispositivos['E0'] = 10
 dispositivos['E1'] = 20
 dispositivos['S0'] = 35
 dispositivos['S1'] = 18
-GD = deviceManager(dispositivos=dispositivos)
+GD = DeviceManager(dispositivos=dispositivos)
 GD.mostrarEstado()
 
 print('\r\n-----INSERINDO SOLICITAÇÕES DE ACESSO A E0 E S0, ATUALIZANDO E VERIFICANDO O ESTADO APÓS ATUALIZAÇÃO----')

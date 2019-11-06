@@ -10,7 +10,7 @@ class CPU:
         # Instantes em que os jobs vão requerir E/S ou acesso ao disco instantesE_S[nomeDoJob] = [t1,t2,...,tn] --> sempre em ordem crescente
         self.instantesE_S = {}
 
-        # Número do job sendo atualmente executado
+        # Nome do job sendo atualmente executado
         self.jobAtual = None
 
         # Quantos t o job atual ainda permanecerá ocupando o processador
@@ -32,6 +32,8 @@ class CPU:
 
         self.fila.insert(0, [job.nome, tTotal, 'P', 0])
         self.instantesE_S[job.nome] = instantesE_S
+
+        # print('Job ' + job.nome + ' inserido na fila do processador')
 
     def escalonarJob(self):
         # Retorna False se não houver job para escalonar
@@ -63,6 +65,7 @@ class CPU:
         self.jobAtual = jobAEscalonar[0]
         self.ciclosParaConcluirJobAtual = jobAEscalonar[1]
         self.ciclosExecutadosNoTotal = jobAEscalonar[3]
+
         return True
 
     def inserirJobNoFinalDaFila(self, nomeDoJob, ciclosRemanescentes, estado, qtdCiclosJaExecutados):
@@ -70,13 +73,13 @@ class CPU:
 
     def alternarParaModoE_S(self):
         """Atualiza o job corrente para o modo E/S e o insere no final da fila. Salva-se quantos ciclos ainda faltam para executar e escalona-se o próximo job"""
-        # print('\r\n=====Antes do escalonamento=====')
-        # self.mostrarEstadoAtual()
-        # self.mostrarFila()
         instanteDeInterrupcao = self.instantesE_S[self.jobAtual].pop(0)  # Remove o instante da lista
         self.inserirJobNoFinalDaFila(nomeDoJob=self.jobAtual, ciclosRemanescentes=self.ciclosParaConcluirJobAtual, estado='ES',
                                      qtdCiclosJaExecutados=instanteDeInterrupcao)
-        # print('O job ' + self.jobAtual + ' entrou no modo E/S')
+        self.timeSliceJobAtual = self.timeSlice
+        self.jobAtual = None
+        self.ciclosParaConcluirJobAtual = None
+        self.ciclosExecutadosNoTotal = None
 
     def alternarParaModoPronto(self, nomeJob):
         """Função a ser chamada pelo gerenciador de disco ou gerenciador de E/S para indicar o fim de operação de E/S"""
@@ -85,22 +88,30 @@ class CPU:
                 self.fila[i][2] = 'P'
                 break
 
-    def encerrarJobAtual(self):
-        """Encerra o job atualmente em execução e remove os instantes de E_S da lista"""
-        del self.instantesE_S[self.jobAtual]
-        self.jobAtual = None
-        self.timeSliceJobAtual = self.timeSlice
-        self.ciclosParaConcluirJobAtual = None
-        self.ciclosExecutadosNoTotal = 0
+    def encerrarJob(self, nomeDoJob):
+        """Encerra o job atualmente com o nome fornecido e remove os instantes de E_S da lista"""
+        if(nomeDoJob in self.instantesE_S.keys()):
+            del self.instantesE_S[nomeDoJob]
+        if(nomeDoJob == self.jobAtual):
+            self.jobAtual = None
+            self.timeSliceJobAtual = self.timeSlice
+            self.ciclosParaConcluirJobAtual = None
+            self.ciclosExecutadosNoTotal = 0
+
+        # Remover o job da fila
+        for index in range(len(self.fila)):
+            if self.fila[index][0] == nomeDoJob:
+                del self.fila[index]
+                break
 
     def atualizar(self):
         """Atualiza o estado do processamento, verificando se o job atual finalizou seu processamento, se o job requer E/S e se houve fim de time slice"""
         # Possibilidades de valor a se retornar (True/False, Mensagem, Tipo de evento):
-        # (False, None, None) se não houver nenhuma alteração
-        # (True, 'Job alocado da fila', 'A') se for a primeira vez que um job for alocado, isto é, na situação inicial
-        # (True, 'Execução do job nomeDoJob foi finalizada', 'F')
-        # (True, 'Fim do time slice para o job nomeDoJob', 'TS')
-        # (True, 'Job nomeDoJob solicitou E/S', 'ES')
+        # (False, None, None, None) se não houver nenhuma alteração
+        # (True, 'Job alocado da fila', 'A', None) se for a primeira vez que um job for alocado, isto é, na situação inicial
+        # (True, 'Execução do job nomeDoJob foi finalizada', 'F', nome do job finalizado)
+        # (True, 'Fim do time slice para o job nomeDoJob', 'TS', None)
+        # (True, 'Job nomeDoJob solicitou E/S', 'ES', nome do job que solicita E/S)
 
         haJobsProntosNaLista = False
         for job in self.fila:
@@ -111,10 +122,10 @@ class CPU:
             if(haJobsProntosNaLista):
                 # Não há jobs correntes mas há jobs prontos na fila (situação inicial por exemplo)
                 escalonar = self.escalonarJob()
-                return True, ('Job ' + str(self.jobAtual) + ' alocado da fila'), 'A'
+                return True, ('Job ' + str(self.jobAtual) + ' alocado da fila'), 'A', None
             else:
                 # Não há job corrente e nenhum job pronto na fila
-                return False, None, None
+                return False, None, None, None
 
         self.ciclosExecutadosNoTotal += 1
         self.ciclosParaConcluirJobAtual -= 1
@@ -122,48 +133,47 @@ class CPU:
 
         if(self.ciclosParaConcluirJobAtual == 0):
             # Término do processamento
-            mensagemDeRetorno = ('Execução do job ' + self.jobAtual + ' foi finalizada')
-            self.encerrarJobAtual()
+            jobEncerrado = self.jobAtual
+            mensagemDeRetorno = ('Execução do job ' + jobEncerrado + ' foi finalizada')
+            self.encerrarJob(self.jobAtual)
             escalonar = self.escalonarJob()
             if(not escalonar):
                 mensagemDeRetorno += '. Não há nenhum outro job pronto para execução'
             else:
                 mensagemDeRetorno += '. Alterna-se para a execução do job ' + self.jobAtual
-            return True, mensagemDeRetorno, 'F'
-        elif(self.ciclosExecutadosNoTotal in self.instantesE_S[self.jobAtual]):
+            return True, mensagemDeRetorno, 'F', jobEncerrado
+        elif((self.jobAtual in self.instantesE_S.keys()) and (self.ciclosExecutadosNoTotal in self.instantesE_S[self.jobAtual])):
             # Solicitação de E/S
-            mensagemDeRetorno = ('Job ' + self.jobAtual + ' solicitou E/S')
+            jobSolicitante = self.jobAtual
+            mensagemDeRetorno = ('Job ' + jobSolicitante + ' solicitou E/S')
             self.alternarParaModoE_S()
             escalonar = self.escalonarJob()
             if(not escalonar):
                 mensagemDeRetorno += '. Não há nenhum outro job pronto para execução'
             else:
                 mensagemDeRetorno += '. Alterna-se para a execução do job ' + self.jobAtual
-            # print('\r\n=====Depois do escalonamento devido a E/S=====')
-            # self.mostrarEstadoAtual()
-            # self.mostrarFila()
-            return True, mensagemDeRetorno, 'ES'
+            return True, mensagemDeRetorno, 'ES', jobSolicitante
         elif(self.timeSliceJobAtual == 0):
             # Fim do timeSlice
             mensagemDeRetorno = 'Fim do time slice do job ' + self.jobAtual
             jobAnterior = self.jobAtual
             estado = 'P'
-            if(self.ciclosExecutadosNoTotal in self.instantesE_S[self.jobAtual]):
+            if(self.jobAtual in self.instantesE_S.keys()) and (self.ciclosExecutadosNoTotal in self.instantesE_S[self.jobAtual]):
                 estado = 'ES'
             self.inserirJobNoFinalDaFila(nomeDoJob=self.jobAtual, ciclosRemanescentes=self.ciclosParaConcluirJobAtual,
                                          estado=estado, qtdCiclosJaExecutados=self.ciclosExecutadosNoTotal)
             escalonar = self.escalonarJob()
             if(jobAnterior == self.jobAtual):
                 # Para o caso em que ocorre o fim do time slice, mas o job que toma conta do processador é o mesmo que no time slice anterior
-                return False, None, None
+                return False, None, None, None
             if(not escalonar):
                 mensagemDeRetorno += '. Não há nenhum outro job pronto para execução'
             else:
                 mensagemDeRetorno += '. Alterna-se para a execução do job ' + self.jobAtual
-            return True, mensagemDeRetorno, 'TS'
+            return True, mensagemDeRetorno, 'TS', None
         else:
             # Nenhuma alteração em relação ao ciclo anterior
-            return False, None, None
+            return False, None, None, None
 
     def mostrarEstadoAtual(self):
         print('\r\n>>>>>Estado atual<<<<<')

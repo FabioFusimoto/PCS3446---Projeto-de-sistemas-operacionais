@@ -46,11 +46,16 @@ class RAM:
 
     def alocarJobDaFila(self):
         # O elemento de maior prioridade encontra-se na última posição da fila, posição (len(self.fila) - 1)
+
+        # Retorna-se True, nomeDoJob caso o job seja alocado na memória
+        # Retorna-se False, None caso não haja nenhum job para ser alocado
+        if len(self.fila) == 0:
+            return False, None
+
         # Calcula-se primeiro quanta memória será necessária para alocar todos os segmentos ativos do job
         memoriaNecessaria = 0
         for segm in self.fila[len(self.fila) - 1].segmentosAtivos:
             memoriaNecessaria += self.fila[len(self.fila) - 1].listaSegmentos[segm].memoria
-        # print('\r\nQuantidade de memória requerida para alocar o job ' + str(self.fila[len(self.fila) - 1].nome) + ' --> ' + str(memoriaNecessaria))
         haMemoriaDisponivel, posicaoParaAlocar = self.verificarDisponibilidadeDeMemoria(qtdMem=memoriaNecessaria)
         if(haMemoriaDisponivel):
             nomeDoJob = self.fila[len(self.fila) - 1].nome
@@ -65,7 +70,10 @@ class RAM:
             self.espacosOcupados.sort(key=lambda x: x[0])
 
             # Ao término da execução, remove-se o job da fila
-            self.fila.pop()
+            nomeDoJob = self.fila.pop().nome
+            return True, nomeDoJob
+        else:
+            return False, None
 
     def alocarNovoJob(self, job):
         self.fila.insert(0, job)
@@ -123,16 +131,7 @@ class RAM:
 
     def carregarArquivoDoDisco(self, nomeDoArquivo, jobSolicitante, disco):
         # O arg disco é um objeto da classe disco
-        # Retorna-se True caso um novo arquivo seja inserido na memória com sucesso ou já esteja em memória e o job solicitante pode acessar esse arquivo
-        # Retorna-se False se o job solicitante não puder acessar o arquivo ou o arquivo não existir no disco
-
-        # Arquivo não presente no disco
-        if nomeDoArquivo not in disco.arquivos.keys():
-            return False
-
-        # Job solicitante não tem acesso ao arquivo
-        if ('Public' not in disco.arquivos[nomeDoArquivo][1]) and (jobSolicitante not in disco.arquivos[nomeDoArquivo][1]):
-            return False
+        # Carrega-se o arquivo do disco para a memória
 
         # Arquivo não presente ainda em memória
         if nomeDoArquivo not in self.fileTable.keys():
@@ -141,8 +140,6 @@ class RAM:
             else:
                 dono = jobSolicitante
             self.fileTable[nomeDoArquivo] = [dono, [jobSolicitante]]
-            return True
 
         # Arquivo presente na memória e no caso que jobs acesse o arquivo simultaneamente
         self.fileTable[nomeDoArquivo][1].append(jobSolicitante)
-        return True

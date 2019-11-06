@@ -1,7 +1,7 @@
 import texttable
 
 
-class deviceManager:
+class DeviceManager:
     def __init__(self, dispositivos):
         # dispositivos é um dict do tipo disp[nome] = tAcesso
         self.dispositivos = dispositivos
@@ -28,36 +28,44 @@ class deviceManager:
     def finalizarAcesso(self, nomeDoDispositivo):
         if(nomeDoDispositivo in self.acessosCorrentes.keys()):
             if(self.acessosCorrentes[nomeDoDispositivo][1] == 0):
+                jobQueUsavaODispositivo = self.acessosCorrentes[nomeDoDispositivo][0]
                 del self.acessosCorrentes[nomeDoDispositivo]
-                return True
-        return False
+                return True, jobQueUsavaODispositivo
+        return False, None
 
     def atualizar(self):
         # O processo de atualização é um pouco diferente porque múltiplas ações podem ocorrer simultaneamente
         houveAtualizacao = False
         mensagem = ''
+        jobsQueIniciaramES = []  # elementos da forma [nomeDoJob, nomeDoDispositivo]
+        jobsQueFinalizaramES = []  # elementos da forma [nomeDoJob, nomeDoDispositivo]
 
         # Primeiro decremento t de todos os acessos correntes verifico quais foram finalizados
         for key in self.acessosCorrentes.keys():
             self.acessosCorrentes[key][1] -= 1
 
         for disp in self.dispositivos.keys():
-            if(self.finalizarAcesso(nomeDoDispositivo=disp)):
+            acessoFinalizado, jobQueUsavaODispositivo = self.finalizarAcesso(nomeDoDispositivo=disp)
+            if(acessoFinalizado):
                 houveAtualizacao = True
                 mensagem += ' Dispositivo ' + disp + ' finalizou o processo de E/S.'
+                jobsQueFinalizaramES.append([jobQueUsavaODispositivo, disp])
 
         # Em seguida tento alocar os acessos da fila
         solicitacoesComSucesso = []
         for i in range(len(self.fila)):
-            if(self.acessarDispositivo(nomeDoDispositivo=self.fila[i][0], nomeDoJob=self.fila[i][1])):
+            nomeDoDispositivo = self.fila[i][0]
+            jobQueVaiUsarODispositivo = self.fila[i][1]
+            if(self.acessarDispositivo(nomeDoDispositivo=nomeDoDispositivo, nomeDoJob=jobQueVaiUsarODispositivo)):
                 houveAtualizacao = True
                 mensagem += ' Job ' + self.fila[i][1] + ' iniciou o acesso ao dispositivo ' + self.fila[i][0] + '.'
                 solicitacoesComSucesso.append([self.fila[i][0], self.fila[i][1]])
+                jobsQueIniciaramES = [jobQueUsavaODispositivo, nomeDoDispositivo]
         for s in solicitacoesComSucesso:
             index = self.fila.index(s)
             del self.fila[index]
 
-        return houveAtualizacao, mensagem
+        return houveAtualizacao, mensagem, jobsQueIniciaramES, jobsQueFinalizaramES
 
     def mostrarEstado(self):
         t = texttable.Texttable()

@@ -3,11 +3,10 @@ from memoria import RAM
 from jobs import Job, Segmento, lerJobDoArquivo, montarTabelaDeJobs
 
 print('\r\n-----INICIALIZANDO E VERIFICANDO O ESTADO E OS ARQUIVOS-----')
-disco = HD(tamanho=2**20, numCiclos=5)
-memoria = RAM(tamanho=2**10)
 arquivosACarregar = ['file1', 'file2', 'file4']
+disco = HD(tamanho=2**20, numCiclos=5, listaDeNomes=arquivosACarregar)
+memoria = RAM(tamanho=2**10)
 
-disco.inicializar(arquivosACarregar)
 disco.exibirEstado()
 disco.exibirArquivos()
 

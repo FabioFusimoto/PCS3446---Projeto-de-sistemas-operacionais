@@ -1,4 +1,6 @@
 import os.path
+from pptree import Node, print_tree
+import texttable
 
 
 class Job:
@@ -10,20 +12,28 @@ class Job:
         self.segmentosAtivos = []  # Armazena o número dos segmentos ativos
 
     def mostrarArvore(self):
+        # Montando os segmentos para utilizar o PPTREEE
+        nos = []
+        nos.append(Node('0'))
+        for key in self.arvore.keys():
+            if(key != 0):
+                nos.append(Node(str(key), nos[self.arvore[key][0]]))
         print('\r\nArvore de segmentos do job ' + str(self.nome))
-        print(self.arvore)
+        print_tree(nos[0])
 
     def mostrarRequisitosDoJob(self):
+        t = texttable.Texttable(max_width=120)
+        t.add_row(['Nº do segmento', 'Memória', 'tCPU', 'Disp. de E/S', 'Qtd. de E/S', 'Qtd. de arqs.', 'Nomes dos arquivos', 'Instantes de acesso'])
         print('\r\nJob ' + str(self.nome))
         for seg in self.listaSegmentos:
-            seg.mostrarRequisitos()
+            t.add_row([seg.numero, seg.memoria, seg.tCPU, seg.nomeE_S, seg.qtdE_S, seg.qtdArquivos, seg.nomeDosArquivos, seg.instantesDeAcesso])
+        print(t.draw())
 
     def definirSegmentosAtivos(self, listaDeSegmentos):
         self.segmentosAtivos = listaDeSegmentos
 
-
 class Segmento:
-    def __init__(self, numero, memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, nomeDosArquivos, instantesDeAcesso, qtdDeReferenciasAOutrosSegms, segmsReferenciados, instantesDeReferencia, probabilidades):
+    def __init__(self, numero, memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, nomeDosArquivos, instantesDeAcesso):
         self.numero = numero
         self.memoria = memoria
         self.tCPU = tCPU
@@ -32,10 +42,6 @@ class Segmento:
         self.qtdArquivos = qtdArquivos
         self.nomeDosArquivos = nomeDosArquivos
         self.instantesDeAcesso = instantesDeAcesso
-        self.qtdDeReferenciasAOutrosSegms = qtdDeReferenciasAOutrosSegms
-        self.segmsReferenciados = segmsReferenciados
-        self.instantesDeReferencia = instantesDeReferencia
-        self.probabilidades = probabilidades
 
     def mostrarRequisitos(self):
         print('\r\nSegmento #' + str(self.numero))
@@ -48,10 +54,6 @@ class Segmento:
         if(self.qtdArquivos > 0):
             for i in range(self.qtdArquivos):
                 print('Arquivo ' + self.nomeDosArquivos[i] + ' acessado no instante ' + str(self.instantesDeAcesso[i]))
-        print('Quantidade de referências a outros segmentos: ' + str(self.qtdDeReferenciasAOutrosSegms))
-        if(self.qtdDeReferenciasAOutrosSegms > 0):
-            for i in range(self.qtdDeReferenciasAOutrosSegms):
-                print('Referencia-se o segmento ' + str(self.segmsReferenciados[i]) + ' no instante ' + str(self.instantesDeReferencia[i]) + ' com probabilidade ' + str(100 * self.probabilidades[i]) + '%')
 
 def lerJobDoArquivo(nomeArquivo: str):
     # retorna uma entrada para colocar na tabela de jobs
@@ -92,7 +94,7 @@ def lerJobDoArquivo(nomeArquivo: str):
         memoria = int(elementosDaLinha[0])
         tCPU = int(elementosDaLinha[1])
         nomeE_S = elementosDaLinha[2]
-        qtdE_S = elementosDaLinha[3]
+        qtdE_S = int(elementosDaLinha[3])
         qtdArquivos = int(elementosDaLinha[4])
         index = 5
         nomeDosArquivos = []
@@ -103,23 +105,8 @@ def lerJobDoArquivo(nomeArquivo: str):
         for i in range(qtdArquivos):
             instantesDeAcesso.append(int(elementosDaLinha[index]))
             index += 1
-        qtdDeReferenciasAOutrosSegms = int(elementosDaLinha[index])
-        index += 1
-        segmsReferenciados = []
-        instantesDeReferencia = []
-        probabilidades = []
-        for i in range(qtdDeReferenciasAOutrosSegms):
-            segmsReferenciados.append(int(elementosDaLinha[index]))
-            index += 1
-        for i in range(qtdDeReferenciasAOutrosSegms):
-            instantesDeReferencia.append(int(elementosDaLinha[index]))
-            index += 1
-        for i in range(qtdDeReferenciasAOutrosSegms):
-            probabilidades.append(float(elementosDaLinha[index]))
-            index += 1
         novoSegmento = Segmento(numero=seg, memoria=memoria, tCPU=tCPU, nomeE_S=nomeE_S, qtdE_S=qtdE_S, qtdArquivos=qtdArquivos, nomeDosArquivos=nomeDosArquivos,
-                                instantesDeAcesso=instantesDeAcesso, qtdDeReferenciasAOutrosSegms=qtdDeReferenciasAOutrosSegms, segmsReferenciados=segmsReferenciados,
-                                instantesDeReferencia=instantesDeReferencia, probabilidades=probabilidades)
+                                instantesDeAcesso=instantesDeAcesso)
         listaDeSegmentos.append(novoSegmento)
     # print(requisitos)
     novoJob = Job(nome=nomeArquivo.split('.')[0], arvore=arvoreSegmentos, listaSegmentos=listaDeSegmentos)
