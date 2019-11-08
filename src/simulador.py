@@ -106,8 +106,9 @@ class SIM:
     def avancarSimulacao(self):
         # Retorna True se a simulação tiver que continuar e False caso tenha que acabar
         if(self.instanteAtual == self.duracao):
-            return False
+            return False, []
         else:
+            eventos = []
             # 1) Verifica se até o instante atual ocorre a chegada de algum job e os submete quando o limite não for atingido
             for i in range(len(self.jobs)):
                 # Verificando se o limite de jobs
@@ -117,8 +118,10 @@ class SIM:
                         self.log.add_row([str(self.instanteAtual), ['M'], 'JIF', 'Job  ' + self.jobs[i].nome + ' inserido na fila de acesso à memória'])
                         self.quantidadeDeJobsAlocados += 1
                         self.jobsSubmetidos.append(i)
+                        eventos.append('JIF')
                     elif(self.instantesDeSubmissao[i] == self.instanteAtual):
                         self.log.add_row([str(self.instanteAtual), ['M'], 'JNIF', 'Job  ' + self.jobs[i].nome + ' chegou mas não foi inserido na fila de acesso à memória pois o limite de jobs foi atingido'])
+                        eventos.append('JNIF')
 
             # 2) Aloca-se primeiro job (dentre os já submetidos) da fila do gerenciador de memória na memória, se houver espaço e insere-se o job na fila do processador
             memoriaFoiAlocada, nomeDoJob = self.memoria.alocarJobDaFila()
@@ -133,6 +136,7 @@ class SIM:
                     instantesDeInterrupcao.append(self.interrupcoes[nomeDoJob][i][0])
                 self.processador.adicionarNovoJob(job=jobAAlocar, instantesE_S=instantesDeInterrupcao)
                 self.log.add_row([str(self.instanteAtual), ['M', 'C'], 'RA', 'Recursos alocados para o job ' + nomeDoJob])
+                eventos.append('RA')
                 # print('Alocou-se o job ' + nomeDoJob + ' com as interrupções nos seguintes instantes: ' + str(instantesDeInterrupcao))
 
             # 3) Atualiza-se o estado do disco, verificando se um novo acesso é iniciado ou o acesso
@@ -144,14 +148,17 @@ class SIM:
                     self.processador.alternarParaModoPronto(nomeJob=nomeDoJob)
                     naoUsoEssaVariavel = self.memoria.carregarArquivoDoDisco(nomeDoArquivo=nomeDoArquivo, jobSolicitante=nomeDoJob, disco=self.disco)
                     self.log.add_row([str(self.instanteAtual), ['D', 'M'], 'ADF', 'Arquivo ' + nomeDoArquivo + ' trazido do disco para a memória mediante solicitação do job ' + nomeDoJob])
+                    eventos.append('ADF')
                 elif(tipo == 'A'):
                     self.log.add_row([str(self.instanteAtual), ['D'], 'ADI', mensagem])
+                    eventos.append('ADI')
 
             # 4) Atualiza-se o estado do gerenciador de dispositivos, verificando se houve término de acesso
             # a algum dispositivo de E/S, informando este fato ao processador
             atualizacaoDeES, mensagem, ESIniciadas, ESFinalizadas = self.GD.atualizar()
             if(atualizacaoDeES):
                 self.log.add_row([str(self.instanteAtual), ['GD'], 'AGD', mensagem])
+                eventos.append('AGD')
                 for es in ESFinalizadas:
                     self.processador.alternarParaModoPronto(nomeJob=es[0])
 
@@ -160,6 +167,7 @@ class SIM:
             if(atualizacaoDeCPU):
                 if(tipo == 'TS'):
                     self.log.add_row([str(self.instanteAtual), ['C'], 'FTS', mensagem])
+                    eventos.append('FTS')
                 elif(tipo == 'F'):
                     # job finalizado, logo deve ser removido da lista de jobs correntes
                     index = None
@@ -168,6 +176,7 @@ class SIM:
                             index = i
                             break
                     self.jobsFinalizados.append(index)
+                    self.memoria.liberarJob(nomeDoJob=nomeDoJob)
                     posicaoParaDeletar = self.jobsSubmetidos.index(index)
                     del self.jobsSubmetidos[posicaoParaDeletar]
                     self.quantidadeDeJobsAlocados -= 1
@@ -180,6 +189,7 @@ class SIM:
                     # print('Jobs submetidos: ' + str(self.jobsSubmetidos))
                     # print('Jobs finalizados: ' + str(self.jobsFinalizados))
                     self.log.add_row([str(self.instanteAtual), ['C'], 'FJ', mensagem])
+                    eventos.append('FJ')
                 elif(tipo == 'ES'):
                     # Para o processador, disco e E/S são a mesma coisa, é preciso primeiro saber qual dos dois se referencia
                     # Verifica-se o primeiro instante de interrupção programado, remove-o da lista e decide-se se ele é Disco ou E/S
@@ -194,10 +204,12 @@ class SIM:
                         if(acessoValidoAoDisco):
                             acesso, mensagem = self.disco.solicitarAcessoAoDisco(nomeDoJob=nomeDoJob, nomeDoArquivo=interrupcao[2])
                             self.log.add_row([self.instanteAtual, ['D'], 'AVD', mensagem])
+                            eventos.append('AVD')
                         else:
                             # Acesso ilegal ao arquivo, encerra-se o job solicitante
                             # Remove-se também os instantes de E/S, acesso ao disco e interrupções (que é a junção de ambos)
                             self.processador.encerrarJob(nomeDoJob=nomeDoJob)
+                            self.memoria.liberarJob(nomeDoJob=nomeDoJob)
 
                             indiceDoJob = None
                             for i in range(len(self.jobs)):
@@ -222,15 +234,17 @@ class SIM:
                             self.quantidadeDeJobsAlocados -= 1
 
                             self.log.add_row([str(self.instanteAtual), ['D', 'M', 'C'], 'AID', 'Job ' + nomeDoJob + ' solicitou acesso ilegal ao arquivo ' + interrupcao[2] + ' e foi finalizado'])
+                            eventos.append('AID')
                     else:
                         self.GD.solicitarES(nomeDoJob=nomeDoJob, nomeDoDispositivo=interrupcao[2])
                         self.log.add_row([str(self.instanteAtual), ['GD'], 'IDisp', 'Job ' + nomeDoJob + ' solicitou acesso ao dispositivo ' + interrupcao[2]])
+                        eventos.append('IDisp')
 
                     # print('\r\nInterrupção no instante ' + str(self.instanteAtual) + ' Interrupções remanescentes:')
                     # print(self.interrupcoes)
 
             self.instanteAtual += 1
-            return True
+            return True, eventos
 
     def mostrarLog(self):
         print('\r\nLog de simulação')
@@ -239,3 +253,45 @@ class SIM:
     def inserirLogNoArquivo(self, nomeDoArquivo):
         f = open(nomeDoArquivo, 'w+')
         f.write(self.log.draw())
+
+    def mostrarInstantesDeInterrupcao(self):
+        interrupcoes = []
+        for key in self.interrupcoes.keys():
+            for interr in self.interrupcoes[key]:
+                interrupcoes.append([key, interr[0], interr[1], interr[2]])
+
+        t = texttable.Texttable()
+        t.add_row(['Job', 'Instante', 'Tipo', 'Nome do dispositivo ou arquivo a acessar'])
+        for i in interrupcoes:
+            t.add_row(i)
+        print(t.draw())
+
+    def mostrarEstado(self):
+        print('\r\n=====Jobs=====')
+        t = texttable.Texttable()
+        t.add_row(['Job', 'Estado'])
+        for i in range(len(self.jobs)):
+            estado = None
+            if (i in self.jobsSubmetidos) and (i not in self.jobsFinalizados):
+                estado = 'Submetido'
+            elif(i in self.jobsFinalizados):
+                estado = 'Finalizado'
+            else:
+                estado = 'Ainda não submetido'
+            t.add_row([self.jobs[i].nome, estado])
+        print(t.draw())
+
+        print('\r\n=====Memória=====')
+        self.memoria.mostrarEspacosOcupados()
+        self.memoria.mostrarSegmentTable()
+        self.memoria.mostrarFileTable()
+
+        print('\r\n=====Disco=====')
+        self.disco.exibirArquivos()
+        self.disco.exibirEstado()
+
+        print('\r\n=====Dispositivos=====')
+        self.GD.mostrarEstado()
+
+        print('\r\n=====Interrupções pendentes=====')
+        self.mostrarInstantesDeInterrupcao()

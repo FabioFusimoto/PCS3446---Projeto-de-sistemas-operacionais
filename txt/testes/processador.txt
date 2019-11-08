@@ -1,0 +1,266 @@
+1)-----INSERINDO JOBS NA FILA-----
+
+Jobs na fila
++------+--------------------+--------+--------------------+--------------------+
+| Nome | t para terminar a  | Estado | Ciclos já          | Instantes de       |
+|      | execução           |        | executados         | interrupção        |
++------+--------------------+--------+--------------------+--------------------+
+| C    | 4150               | P      | 0                  | []                 |
++------+--------------------+--------+--------------------+--------------------+
+| B    | 2250               | P      | 0                  | [400]              |
++------+--------------------+--------+--------------------+--------------------+
+| A    | 3500               | P      | 0                  | [25]               |
++------+--------------------+--------+--------------------+--------------------+
+
+2)-----ATUALIZANDO O PROCESSAMENTO 5 VEZES (EQUIVALENTE A ESPERAR 5 CICLOS)-----
+
+Ciclo #0
+Job A alocado da fila
+
+Ciclo #1
+Não houve atualizações
+
+Ciclo #2
+Não houve atualizações
+
+Ciclo #3
+Não houve atualizações
+
+Ciclo #4
+Não houve atualizações
+
+3)-----APÓS EXECUTAR 5 CICLOS-----
+
+Estado atual do processador
++-----------+----------------+----------------+----------------+---------------+
+| Job atual | Instantes de   | Ciclos         | Ciclos já      | Ciclos para   |
+|           | interrupção do | remanescentes  | executados     | finalizar o   |
+|           | job atual      | nesse time     | nesse time     | job atual     |
+|           |                | slice          | slice          |               |
++-----------+----------------+----------------+----------------+---------------+
+| A         | [25]           | 46             | 4              | 3496          |
++-----------+----------------+----------------+----------------+---------------+
+
+Jobs na fila
++------+--------------------+--------+--------------------+--------------------+
+| Nome | t para terminar a  | Estado | Ciclos já          | Instantes de       |
+|      | execução           |        | executados         | interrupção        |
++------+--------------------+--------+--------------------+--------------------+
+| C    | 4150               | P      | 0                  | []                 |
++------+--------------------+--------+--------------------+--------------------+
+| B    | 2250               | P      | 0                  | [400]              |
++------+--------------------+--------+--------------------+--------------------+
+
+4)-----EXECUTANDO POR 10000 CICLOS E MOSTRANDO AS MUDANÇAS----
++----------+-------------------------------------------------------------------+
+| Instante | Atulização                                                        |
++----------+-------------------------------------------------------------------+
+| 25       | Job A solicitou E/S. Alterna-se para a execução do job B          |
++----------+-------------------------------------------------------------------+
+| 75       | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 125      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 175      | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 225      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 275      | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 325      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 375      | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 425      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 475      | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 525      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 575      | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 625      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 675      | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 725      | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 775      | Job B solicitou E/S. Alterna-se para a execução do job C          |
++----------+-------------------------------------------------------------------+
+| 3025     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3075     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3125     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3175     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3225     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3275     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3325     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3375     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3425     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3475     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3525     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3575     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3625     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3675     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3725     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3775     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3825     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3875     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 3925     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 3975     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4025     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4075     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4125     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4175     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4225     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4275     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4325     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4375     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4425     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4475     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4525     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4575     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4625     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4675     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4725     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4775     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4825     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4875     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 4925     | Fim do time slice do job C. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 4975     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5025     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5075     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 5125     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5175     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5225     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 5275     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5325     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5375     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 5425     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5475     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5525     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 5575     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5625     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5675     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 5725     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5775     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5825     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 5875     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 5925     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 5975     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6025     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 6075     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 6125     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6175     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 6225     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 6275     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6325     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 6375     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 6425     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6475     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 6525     | Fim do time slice do job C. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 6575     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6625     | Fim do time slice do job B. Alterna-se para a execução do job C   |
++----------+-------------------------------------------------------------------+
+| 6675     | Execução do job C foi finalizada. Alterna-se para a execução do   |
+|          | job A                                                             |
++----------+-------------------------------------------------------------------+
+| 6725     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6775     | Fim do time slice do job B. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 6825     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6875     | Fim do time slice do job B. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 6925     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 6975     | Fim do time slice do job B. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 7025     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 7075     | Fim do time slice do job B. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 7125     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 7175     | Fim do time slice do job B. Alterna-se para a execução do job A   |
++----------+-------------------------------------------------------------------+
+| 7225     | Fim do time slice do job A. Alterna-se para a execução do job B   |
++----------+-------------------------------------------------------------------+
+| 7275     | Execução do job B foi finalizada. Alterna-se para a execução do   |
+|          | job A                                                             |
++----------+-------------------------------------------------------------------+
+| 9900     | Execução do job A foi finalizada. Não há nenhum outro job pronto  |
+|          | para execução                                                     |
++----------+-------------------------------------------------------------------+

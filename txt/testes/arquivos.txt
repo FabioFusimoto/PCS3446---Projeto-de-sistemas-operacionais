@@ -1,0 +1,75 @@
+1)-----INICIALIZANDO E VERIFICANDO O ESTADO E OS ARQUIVOS-----
+Disco não está em uso
+Arquivos presentes em disco:
++-----------------+---------+-----------------+
+| Nome do arquivo | Tamanho | Donos           |
++-----------------+---------+-----------------+
+| file1           | 100     | ['A', 'B', 'C'] |
++-----------------+---------+-----------------+
+| file2           | 500     | ['Public']      |
++-----------------+---------+-----------------+
+| file4           | 250     | ['B']           |
++-----------------+---------+-----------------+
+
+2)-----REALIZANDO UMA SOLICITAÇÃO DE ACESSO VÁLIDA-----
+Job A solicitou acesso ao arquivo file1
+Acesso ao disco solicitado com sucesso
+
+3)-----DECREMENTANDO UM CICLO E VERIFICANDO O ESTADO QUANDO HÁ UM ACESSO CORRENTE-----
+Disco em uso pelo job A acessando o arquivo file1
+Ciclos remanescentes para encerrar o acesso: 4
+
+4)-----ACESSANDO O DISCO ENQUANTO HÁ UMA OPERAÇÃO CORRENTE-----
+O disco não pôde ser acessado
+Disco em uso pelo job A acessando o arquivo file1
+Ciclos remanescentes para encerrar o acesso: 4
+
+5)-----TENTANDO LIBERAR O DISCO ENQUANTO HÁ UMA OPERAÇÃO CORRENTE-----
+Disco não pôde ser liberado
+
+6)-----FINALIZANDO O ACESSO E LIBERANDO O DISCO-----
+Disco liberado com sucesso
+Disco não está em uso
+
+7)-----REALIZANDO UMA SOLICITAÇÃO DE ACESSO INVÁLIDA-----
+O job A não tem acesso ao arquivo file4
+
+8)-----INSERINDO UM ARQUIVO DO DISCO PARA A MEMÓRIA, COM SUCESSO-----
+O arquivo file1 não foi carregado em memória mediante solicitação do Job A
+
+File table
++-----------------+-----------------+------------------+
+| Nome do arquivo | Dono do arquivo | Jobs dependentes |
++-----------------+-----------------+------------------+
+| file1           | A               | ['A']            |
++-----------------+-----------------+------------------+
+
+9)-----DECLARANDO QUE UM OUTRO JOB TAMBÉM DEPENDE DO ARQUIVO file1-----
+
+File table
++-----------------+-----------------+------------------+
+| Nome do arquivo | Dono do arquivo | Jobs dependentes |
++-----------------+-----------------+------------------+
+| file1           | A               | ['A', 'B']       |
++-----------------+-----------------+------------------+
+
+10)-----REMOVENDO O JOB A DA MEMÓRIA E VERIFICANDO QUE O file1 PERMANECE NA MEMÓRIA, PORQUE O B TAMBÉM DEPENDE DELE-----
+
+File table
++-----------------+-----------------+------------------+
+| Nome do arquivo | Dono do arquivo | Jobs dependentes |
++-----------------+-----------------+------------------+
+| file1           | A               | ['B']            |
++-----------------+-----------------+------------------+
+
+11)-----REMOVENDO O JOB B DA MEMÓRIA E VERIFICANDO QUE O file1 FOI REMOVIDO DA MEMÓRIA, POIS MAIS NENHUM JOB DEPENDE DELE-----
+
+Segment table
++----------------+------------------------------+---------+
+| Job + Segmento | Endereço inicial de alocação | Tamanho |
++----------------+------------------------------+---------+
+
+File table
++-----------------+-----------------+------------------+
+| Nome do arquivo | Dono do arquivo | Jobs dependentes |
++-----------------+-----------------+------------------+

@@ -1,3 +1,6 @@
+import texttable
+
+
 class RAM:
     def __init__(self, tamanho):
         # Tamanho expresso em bytes
@@ -78,17 +81,6 @@ class RAM:
     def alocarNovoJob(self, job):
         self.fila.insert(0, job)
 
-    def mostrarSegmentTable(self):
-        print('Segment table')
-        print(self.segmentTable)
-
-    def mostrarFileTable(self):
-        print('File table')
-        print(self.fileTable)
-
-    def mostrarEspacosOcupados(self):
-        print(self.espacosOcupados)
-
     def liberarJob(self, nomeDoJob):
         # Primeiro consulta-se a segmentTable para ver quais posições são pertinentes ao job que se quer remover
         chavesADeletar = []
@@ -140,6 +132,30 @@ class RAM:
             else:
                 dono = jobSolicitante
             self.fileTable[nomeDoArquivo] = [dono, [jobSolicitante]]
+        else:
+            # Arquivo presente na memória e no caso que jobs acesse o arquivo simultaneamente
+            self.fileTable[nomeDoArquivo][1].append(jobSolicitante)
 
-        # Arquivo presente na memória e no caso que jobs acesse o arquivo simultaneamente
-        self.fileTable[nomeDoArquivo][1].append(jobSolicitante)
+    def mostrarSegmentTable(self):
+        t = texttable.Texttable()
+        print('\r\nSegment table')
+        t.add_row(['Job + Segmento', 'Endereço inicial de alocação', 'Tamanho'])
+        for key in self.segmentTable.keys():
+            t.add_row([key, self.segmentTable[key][0], self.segmentTable[key][1]])
+        print(t.draw())
+
+    def mostrarFileTable(self):
+        t = texttable.Texttable()
+        print('\r\nFile table')
+        t.add_row(['Nome do arquivo', 'Dono do arquivo', 'Jobs dependentes'])
+        for key in self.fileTable.keys():
+            t.add_row([key, self.fileTable[key][0], self.fileTable[key][1]])
+        print(t.draw())
+
+    def mostrarEspacosOcupados(self):
+        t = texttable.Texttable()
+        print('\r\nEspaços ocupados')
+        t.add_row(['Endereço inicial', 'Endereço final'])
+        for dupla in self.espacosOcupados:
+            t.add_row([dupla[0], dupla[1]])
+        print(t.draw())

@@ -1,4 +1,5 @@
 import os.path
+import texttable
 
 
 class HD:
@@ -108,7 +109,7 @@ class HD:
 
         # Primeiro tento acessar o disco e, se houver sucesso, informo o fato que o houve um novo acesso ao disco
         if(self.acessarDisco()):
-            return True, self.jobUtilizandoODisco, ('Job' + self.jobUtilizandoODisco + ' iniciou para manipular o arquivo ' + self.arquivoSendoAcessado), 'A', self.arquivoSendoAcessado
+            return True, self.jobUtilizandoODisco, ('Job ' + self.jobUtilizandoODisco + ' iniciou o acesso ao arquivo ' + self.arquivoSendoAcessado), 'A', self.arquivoSendoAcessado
 
         # Depois verifico se o job corrente já terminou seu acesso ao disco
         jobQueUsavaODisco = self.jobUtilizandoODisco
@@ -129,7 +130,8 @@ class HD:
 
     def exibirArquivos(self):
         print('Arquivos presentes em disco:')
+        t = texttable.Texttable()
+        t.add_row(['Nome do arquivo', 'Tamanho', 'Donos'])
         for key in self.arquivos.keys():
-            print('\r\nNome: ' + str(key))
-            print('Tamanho: ' + str(self.arquivos[key][0]))
-            print('Proprietário(s): ' + str(self.arquivos[key][1]))
+            t.add_row([key, self.arquivos[key][0], self.arquivos[key][1]])
+        print(t.draw())

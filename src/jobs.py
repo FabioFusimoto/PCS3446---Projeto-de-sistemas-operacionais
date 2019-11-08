@@ -90,21 +90,29 @@ def lerJobDoArquivo(nomeArquivo: str):
     # [memoria, tCPU, nomeE_S, qtdE_S, qtdArquivos, [nomeDosArquivos], [instantesDeAcesso], qtdDeReferenciasAOutrosSegms, [segmsReferenciados], [instanteDeReferencia],[probabilidade]]
     listaDeSegmentos = []
     for seg in range(qtdSegmentos):
+        # print('\r\nsegmento ' + str(seg))
         elementosDaLinha = linhas[seg + 2].split(',')
         memoria = int(elementosDaLinha[0])
+        # print('Memoria: ' + str(memoria))
         tCPU = int(elementosDaLinha[1])
+        # print('tCPU: ' + str(tCPU))
         nomeE_S = elementosDaLinha[2]
+        # print('Dispositivo E/S: ' + nomeE_S)
         qtdE_S = int(elementosDaLinha[3])
+        # print('Qtd E/S: ' + str(qtdE_S))
         qtdArquivos = int(elementosDaLinha[4])
+        # print('Qtd arquivos: ' + str(qtdArquivos))
         index = 5
         nomeDosArquivos = []
         for i in range(qtdArquivos):
             nomeDosArquivos.append(elementosDaLinha[index])
             index += 1
+        # print('Nome dos arquivos: ' + str(nomeDosArquivos))
         instantesDeAcesso = []
         for i in range(qtdArquivos):
             instantesDeAcesso.append(int(elementosDaLinha[index]))
             index += 1
+        # print('Instantes de acesso: ' + str(instantesDeAcesso))
         novoSegmento = Segmento(numero=seg, memoria=memoria, tCPU=tCPU, nomeE_S=nomeE_S, qtdE_S=qtdE_S, qtdArquivos=qtdArquivos, nomeDosArquivos=nomeDosArquivos,
                                 instantesDeAcesso=instantesDeAcesso)
         listaDeSegmentos.append(novoSegmento)
@@ -117,6 +125,7 @@ def montarTabelaDeJobs(listaDeNomes):
     # a serem alocados para cada segmento
     tabelaDeJobs = []
     for nomeDoJob in listaDeNomes:
+        # print('\r\n=====Job ' + nomeDoJob + '=====')
         tabelaDeJobs.append(lerJobDoArquivo(nomeDoJob))
 
     return tabelaDeJobs

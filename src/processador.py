@@ -1,3 +1,6 @@
+import texttable
+
+
 class CPU:
     def __init__(self, timeSlice):
         # Quanto tempo cada job tem para ser executado
@@ -176,21 +179,17 @@ class CPU:
             return False, None, None, None
 
     def mostrarEstadoAtual(self):
-        print('\r\n>>>>>Estado atual<<<<<')
-        print('Job atual: ' + self.jobAtual)
-        print('Instantes de E/S: ' + str(self.instantesE_S[self.jobAtual]))
-        print('Ciclos que o job atual ainda tem direito: ' + str(self.timeSliceJobAtual))
-        print('Ciclos que o job atual já executou no total: ' + str(self.ciclosExecutadosNoTotal))
-        print('Ciclos remanescentes para finalizar o jobAtual: ' + str(self.ciclosParaConcluirJobAtual))
+        print('\r\nEstado atual do processador')
+        t = texttable.Texttable()
+        t.add_row(['Job atual', 'Instantes de interrupção do job atual', 'Ciclos remanescentes nesse time slice', 'Ciclos já executados nesse time slice', 'Ciclos para finalizar o job atual'])
+        t.add_row([self.jobAtual, self.instantesE_S[self.jobAtual], self.timeSliceJobAtual, self.ciclosExecutadosNoTotal, self.ciclosParaConcluirJobAtual])
+        print(t.draw())
 
     def mostrarFila(self):
-        print('\r\n>>>>>Jobs na fila<<<<<')
-        i = 0
+        print('\r\nJobs na fila')
+        t = texttable.Texttable()
+        t.add_row(['Nome', 't para terminar a execução', 'Estado', 'Ciclos já executados', 'Instantes de interrupção'])
+
         for job in self.fila:
-            print('\r\nPrioridade ' + str(i))
-            print('Nome: ' + job[0])
-            print('Ciclos remanescente pra terminar sua execução: ' + str(job[1]))
-            print('Estado: ' + job[2])
-            print('Ciclos já executados: ' + str(job[3]))
-            print('Instantes que requerem E/S: ' + str(self.instantesE_S[job[0]]))
-            i += 1
+            t.add_row([job[0], job[1], job[2], job[3], self.instantesE_S[job[0]]])
+        print(t.draw())
