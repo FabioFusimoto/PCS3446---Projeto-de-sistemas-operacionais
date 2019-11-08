@@ -68,3 +68,6 @@ while(continuarSimulacao):
         mostrarEstado = True
     if mostrarEstado:
         simulador.mostrarEstado()
+
+simulador.inserirLogNoArquivo(nomeDoArquivo='log.txt')
+print('Log gerado e copiado no arquivo ' + str(os.path.split(os.path.dirname(__file__))[0]) + '/log.txt')
